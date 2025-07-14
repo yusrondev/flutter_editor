@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Flutter UI Web Builder</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.css"
+    />
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+      }
+      #sidebar {
+        width: 200px;
+        background: #f8f9fa;
+        padding: 10px;
+        border-right: 1px solid #ccc;
+      }
+      #pages {
+        width: 180px;
+        background: #f1f1f1;
+        padding: 10px;
+        border-right: 1px solid #ccc;
+      }
+      #canvas-container {
+        flex: 1;
+        padding: 10px;
+        background: #fff;
+        overflow: auto;
+      }
+      .widget {
+        padding: 5px;
+        margin-bottom: 5px;
+        background: #eee;
+        cursor: grab;
+      }
+      .drop-area {
+        border: 2px dashed #999;
+        min-height: 100px;
+        padding: 10px;
+      }
+      .form-control {
+        width: 100%;
+        padding: 4px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+      #page-list {
+        list-style: none;
+        padding: 0;
+      }
+      .page-item {
+        padding: 6px;
+        background: #e2e2e2;
+        margin-bottom: 4px;
+        cursor: pointer;
+      }
+      .page-item.active {
+        background: #007bff;
+        color: #fff;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pages">
+      <h4>Pages</h4>
+      <ul id="page-list">
+        <li class="page-item active" data-id="page1">Halaman 1</li>
+      </ul>
+      <button id="add-page">+ Halaman Baru</button>
+    </div>
+
+    <div id="sidebar">
+      <h4>Widgets</h4>
+      <div class="widget" data-type="Text">Text</div>
+      <div class="widget" data-type="Container">Container</div>
+      <div class="widget" data-type="ElevatedButton">Button</div>
+      <div class="widget" data-type="Column">Column</div>
+      <div class="widget" data-type="Row">Row</div>
+      <button id="toggle-preview">Toggle Preview Mode</button>
+      <span id="preview-status">Edit Mode</span>
+    </div>
+
+    <div id="canvas-container">
+      <h3 id="canvas-title">Canvas - Halaman 1</h3>
+      <div class="drop-area" id="main-drop" data-page="page1">
+        <em>Drop your widget here...</em>
+      </div>
+      <br />
+      <button id="export">Export to JSON</button>
+      <pre id="json-output" style="background: #f4f4f4; padding: 10px"></pre>
+    </div>
+
+    <div
+      id="property-panel"
+      style="
+        width: 250px;
+        border-left: 1px solid #ccc;
+        padding: 10px;
+        display: none;
+      "
+    >
+      <h4>Properti</h4>
+      <div id="prop-fields"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script>
+      let selectedWidget = null;
+      let previewMode = false;
+
+      $("#toggle-preview").click(function () {
+        previewMode = !previewMode;
+        $("#preview-status").text(previewMode ? "Preview Mode" : "Edit Mode");
+      });
+
+      const widgetConfigs = {
+        Container: {
+          props: [
+            {
+              key: "alignment",
+              type: "select",
+              options: [
+                "topLeft",
+                "topCenter",
+                "topRight",
+                "centerLeft",
+                "center",
+                "centerRight",
+                "bottomLeft",
+                "bottomCenter",
+                "bottomRight",
+              ],
+            },
+            { key: "margin", type: "text" },
+            { key: "padding", type: "text" },
+            { key: "color", type: "color" },
+            { key: "width", type: "number" },
+            { key: "height", type: "number" },
+            { key: "constraints", type: "textarea" },
+            { key: "click_event", type: "text" },
+          ],
+        },
+        Text: {
+          props: [
+            { key: "data", type: "text" },
+            { key: "color", type: "color" },
+            { key: "fontSize", type: "number" },
+            {
+              key: "fontWeight",
+              type: "select",
+              options: ["normal", "bold", "w100", "w900"],
+            },
+          ],
+        },
+        ElevatedButton: {
+          props: [
+            { key: "click_event", type: "text" },
+            { key: "color", type: "color" },
+            { key: "textColor", type: "color" },
+            { key: "elevation", type: "number" },
+          ],
+        },
+        Column: {
+          props: [
+            {
+              key: "mainAxisAlignment",
+              type: "select",
+              options: ["start", "center", "end", "spaceBetween"],
+            },
+            {
+              key: "crossAxisAlignment",
+              type: "select",
+              options: ["start", "center", "end", "stretch"],
+            },
+          ],
+        },
+        Row: {
+          props: [
+            {
+              key: "mainAxisAlignment",
+              type: "select",
+              options: ["start", "center", "end", "spaceBetween"],
+            },
+            {
+              key: "crossAxisAlignment",
+              type: "select",
+              options: ["start", "center", "end", "stretch"],
+            },
+          ],
+        },
+      };
+
+      let pages = {
+        page1: [],
+      };
+      let currentPage = "page1";
+
+      function switchPage(pageId) {
+        // simpan dulu isi halaman saat ini
+        pages[currentPage] = buildJsonFromDOM($("#main-drop"));
+
+        // update halaman aktif
+        currentPage = pageId;
+        $("#canvas-title").text(
+          `Canvas - ${$('li[data-id="' + pageId + '"]').text()}`
+        );
+        renderPage();
+
+        $("#page-list .page-item").removeClass("active");
+        $(`#page-list .page-item[data-id="${pageId}"]`).addClass("active");
+      }
+
+      function renderPage() {
+        const $drop = $("#main-drop");
+        $drop.empty();
+
+        const widgets = pages[currentPage] || [];
+        widgets.forEach((widget) => {
+          $drop.append(renderWidgetFromJson(widget));
+        });
+
+        updateJsonOutput();
+      }
+
+      function renderWidgetFromJson(widget) {
+        const $el = $("<div class='dropped-widget'></div>")
+          .data("type", widget.type)
+          .data("props", widget)
+          .css({
+            padding: "5px",
+            margin: "5px",
+            background: "#cce5ff",
+            borderRadius: "4px",
+            cursor: "pointer",
+            position: "relative",
+          });
+
+        const $removeBtn = $("<button>x</button>")
+          .css({
+            position: "absolute",
+            top: "2px",
+            right: "2px",
+            fontSize: "12px",
+            border: "none",
+            background: "#dc3545",
+            color: "#fff",
+            borderRadius: "50%",
+            width: "18px",
+            height: "18px",
+            cursor: "pointer",
+          })
+          .on("click", function (e) {
+            e.stopPropagation();
+            $el.remove();
+            updateJsonOutput();
+            $("#property-panel").hide();
+          });
+
+        $el.append($removeBtn);
+        $el.append(`<div>${widget.type}</div>`);
+
+        if (["Column", "Row", "Container"].includes(widget.type)) {
+          const $dropArea = $(
+            "<div class='drop-area' style='margin-top:5px; border:1px dashed #aaa; padding:5px'></div>"
+          );
+          $el.append($dropArea);
+
+          const children =
+            widget.children || (widget.child ? [widget.child] : []);
+          children.forEach((child) => {
+            $dropArea.append(renderWidgetFromJson(child));
+          });
+        }
+
+        $el.on("click", function (e) {
+          e.stopPropagation();
+          $(".dropped-widget").css("outline", "none");
+          $(this).css("outline", "2px solid #007bff");
+
+          if (!previewMode) {
+            showPropertyEditor(this);
+          }
+
+          const props = $(this).data("props");
+          const clickEvent = props?.click_event;
+
+          if (
+            previewMode &&
+            typeof clickEvent === "string" &&
+            clickEvent.startsWith("navigate://")
+          ) {
+            const targetPage = clickEvent.replace("navigate://", "");
+            if (pages[targetPage]) {
+              setTimeout(() => switchPage(targetPage), 100);
+            } else {
+              alert(`Halaman '${targetPage}' tidak ditemukan`);
+            }
+          }
+        });
+
+        return $el;
+      }
+
+      $(function () {
+        $("#add-page").click(function () {
+          const newId = `page${Object.keys(pages).length + 1}`;
+          pages[newId] = [];
+          $("#page-list").append(
+            `<li class="page-item" data-id="${newId}">Halaman ${
+              Object.keys(pages).length
+            }</li>`
+          );
+          switchPage(newId);
+        });
+
+        $("#page-list").on("click", ".page-item", function () {
+          const id = $(this).data("id");
+          switchPage(id);
+        });
+      });
+
+      function generateWidgetJson(type, children = []) {
+        const widget = { type };
+        if (children.length) widget.children = children;
+
+        const config = widgetConfigs[type];
+        if (config && config.props) {
+          config.props.forEach((p) => {
+            if (p.type === "text") widget[p.key] = "";
+            if (p.type === "number") widget[p.key] = 0;
+            if (p.type === "color") widget[p.key] = "#ffffff";
+            if (p.type === "select") widget[p.key] = p.options[0];
+          });
+        }
+
+        if (type === "Text") widget.data = "Example Text";
+        if (type === "ElevatedButton") {
+          widget.child = { type: "Text", data: "Click Me" };
+          widget.click_event = "navigate://page2";
+        }
+
+        return widget;
+      }
+
+      function buildJsonFromDOM(container) {
+        const widgets = [];
+
+        container.children(".dropped-widget").each(function () {
+          let props = $(this).data("props") || { type: $(this).data("type") };
+          const type = props.type;
+
+          const nestedDropArea = $(this).children(".drop-area").first();
+          if (nestedDropArea.length > 0) {
+            const nestedChildren = buildJsonFromDOM(nestedDropArea);
+            if (["Column", "Row", "ListView"].includes(type)) {
+              props.children = nestedChildren;
+            } else if (nestedChildren.length === 1) {
+              props.child = nestedChildren[0];
+            }
+          }
+
+          widgets.push(props);
+        });
+
+        return widgets;
+      }
+
+      function updateJsonOutput() {
+        pages[currentPage] = buildJsonFromDOM($("#main-drop")); // simpan halaman aktif
+        const output = {};
+
+        Object.keys(pages).forEach((pageId) => {
+          output[pageId] = {
+            type: "Container",
+            padding: "16,16,16,16",
+            child: {
+              type: "Column",
+              children: pages[pageId],
+            },
+          };
+        });
+
+        $("#json-output").text(JSON.stringify({ pages: output }, null, 2));
+      }
+
+      function showPropertyEditor(widgetEl) {
+        const $el = $(widgetEl);
+        selectedWidget = $el;
+
+        const type = $el.data("type");
+        let props = $el.data("props") || { type };
+        const config = widgetConfigs[type];
+
+        $("#property-panel").show();
+        $("#prop-fields").html("");
+
+        if (config && config.props) {
+          config.props.forEach((prop) => {
+            const val = props[prop.key] ?? "";
+            if (
+              prop.type === "text" ||
+              prop.type === "number" ||
+              prop.type === "color"
+            ) {
+              $("#prop-fields").append(`
+            <label>${prop.key}:</label>
+            <input type="${prop.type}" data-prop="${prop.key}" class="form-control" value="${val}">
+          `);
+            } else if (prop.type === "select") {
+              const options = prop.options
+                .map(
+                  (opt) =>
+                    `<option value="${opt}" ${
+                      val === opt ? "selected" : ""
+                    }>${opt}</option>`
+                )
+                .join("");
+              $("#prop-fields").append(`
+            <label>${prop.key}:</label>
+            <select data-prop="${prop.key}" class="form-control">${options}</select>
+          `);
+            }
+          });
+        }
+
+        // Tambahan khusus untuk ElevatedButton (child)
+        if (type === "ElevatedButton") {
+          const btnText = props.child?.data || "";
+          $("#prop-fields").append(`
+        <label>Button Text:</label>
+        <input type="text" data-prop="child.data" class="form-control" value="${btnText}">
+      `);
+        }
+
+        $("#prop-fields input, #prop-fields select").on(
+          "input change",
+          function () {
+            const key = $(this).data("prop");
+            const value = $(this).val();
+
+            if (key === "child.data") {
+              props.child = { type: "Text", data: value };
+              $el.children("div").text(`Button: ${value}`);
+            } else {
+              if (["width", "height"].includes(key)) {
+                props[key] = value === "" ? null : Number(value);
+              } else {
+                props[key] = value;
+              }
+
+              if (type === "Text" && key === "data") {
+                $el.children("div").text(`Text: ${value}`);
+              }
+              if (type === "ElevatedButton" && key === "click_event") {
+                $el
+                  .children("div")
+                  .text(`Button: ${props.child?.data || "Click Me"}`);
+              }
+            }
+
+            $el.data("props", props);
+            updateJsonOutput();
+          }
+        );
+      }
+
+      $(function () {
+        $("#sidebar .widget").draggable({
+          helper: "clone",
+          revert: "invalid",
+          appendTo: "body",
+        });
+
+        $("body").on("mouseenter", ".drop-area", function () {
+          const $this = $(this);
+
+          if (!$this.data("ui-droppable")) {
+            $this.droppable({
+              accept: "#sidebar .widget",
+              greedy: true,
+              drop: function (event, ui) {
+                const type = ui.helper.data("type");
+
+                const $newWidget = $("<div class='dropped-widget'></div>")
+                  .data("type", type)
+                  .css({
+                    padding: "5px",
+                    margin: "5px",
+                    background: "#cce5ff",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    position: "relative",
+                  });
+
+                const $removeBtn = $("<button>x</button>")
+                  .css({
+                    position: "absolute",
+                    top: "2px",
+                    right: "2px",
+                    fontSize: "12px",
+                    border: "none",
+                    background: "#dc3545",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: "18px",
+                    height: "18px",
+                    cursor: "pointer",
+                  })
+                  .on("click", function (e) {
+                    e.stopPropagation();
+                    $newWidget.remove();
+                    updateJsonOutput();
+                    $("#property-panel").hide();
+                  });
+
+                $newWidget.append($removeBtn);
+                $newWidget.append(`<div>${type}</div>`);
+
+                const initialProps = generateWidgetJson(type);
+                $newWidget.data("props", initialProps);
+
+                if (
+                  type === "Column" ||
+                  type === "Row" ||
+                  type === "Container"
+                ) {
+                  $newWidget.append(
+                    "<div class='drop-area' style='margin-top:5px; border:1px dashed #aaa; padding:5px'></div>"
+                  );
+                }
+
+                $newWidget.on("click", function (e) {
+                  e.stopPropagation();
+                  $(".dropped-widget").css("outline", "none");
+                  $(this).css("outline", "2px solid #007bff");
+                  showPropertyEditor(this);
+                });
+
+                $(this).append($newWidget);
+                updateJsonOutput();
+              },
+            });
+          }
+        });
+
+        $("body").on("click", function (e) {
+          if (
+            !$(e.target).closest("#property-panel").length &&
+            !$(e.target).closest(".dropped-widget").length
+          ) {
+            $(".dropped-widget").css("outline", "none");
+            $("#property-panel").hide();
+          }
+        });
+
+        $("#property-panel").on("click", function (e) {
+          e.stopPropagation();
+        });
+
+        $("#export").click(updateJsonOutput);
+      });
+    </script>
+  </body>
+</html>
