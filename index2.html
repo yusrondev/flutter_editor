@@ -1,717 +1,907 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Dynamic Widget Editor</title>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
-    />
-    <style>
-      :root {
-        --bg-color: #f5f7fa;
-        --text-color: #333;
-        --panel-bg: #ffffff;
-        --border-color: #e1e5eb;
-        --primary-color: #4a6cf7;
-        --primary-hover: #3a5ce4;
-        --success-color: #28a745;
-        --danger-color: #dc3545;
-        --danger-hover: #c82333;
-        --component-bg: #ffffff;
-        --component-hover: #f0f7ff;
-        --dropzone-bg: #f9f9f9;
-        --dropzone-active: #e8f4ff;
-        --dropzone-hover: #d1e7ff;
-        --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        --empty-message-color: #6c757d;
-        --editor-bg: #ffffff;
-      }
 
-      .dark-mode {
-        --bg-color: #1a1a2e;
-        --text-color: #e6e6e6;
-        --panel-bg: #16213e;
-        --border-color: #2a3a5e;
-        --primary-color: #5a7dff;
-        --primary-hover: #4a6cf7;
-        --success-color: #2ecc71;
-        --danger-color: #ff6b6b;
-        --danger-hover: #ff5252;
-        --component-bg: #16213e;
-        --component-hover: #1f2d4a;
-        --dropzone-bg: #1a1a2e;
-        --dropzone-active: #2a3a5e;
-        --dropzone-hover: #3a4a7e;
-        --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        --empty-message-color: #a0a0a0;
-        --editor-bg: #1f2d4a;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>Dynamic Widget Editor</title>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #f5f7fa;
+      --text-color: #333;
+      --panel-bg: #ffffff;
+      --border-color: #e1e5eb;
+      --primary-color: #4a6cf7;
+      --primary-hover: #3a5ce4;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --danger-hover: #c82333;
+      --component-bg: #ffffff;
+      --component-hover: #f0f7ff;
+      --dropzone-bg: #f9f9f9;
+      --dropzone-active: #e8f4ff;
+      --dropzone-hover: #d1e7ff;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      --empty-message-color: #6c757d;
+      --editor-bg: #ffffff;
+      --category-bg: #f0f2f5;
+      --category-text: #4a5568;
+    }
 
-      body {
-        display: flex;
-        gap: 20px;
-        font-family: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont,
-          sans-serif;
-        padding: 20px;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
+    .dark-mode {
+      --bg-color: #1a1a2e;
+      --text-color: #e6e6e6;
+      --panel-bg: #16213e;
+      --border-color: #2a3a5e;
+      --primary-color: #5a7dff;
+      --primary-hover: #4a6cf7;
+      --success-color: #2ecc71;
+      --danger-color: #ff6b6b;
+      --danger-hover: #ff5252;
+      --component-bg: #16213e;
+      --component-hover: #1f2d4a;
+      --dropzone-bg: #1a1a2e;
+      --dropzone-active: #2a3a5e;
+      --dropzone-hover: #3a4a7e;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      --empty-message-color: #a0a0a0;
+      --editor-bg: #1f2d4a;
+      --category-bg: #2a3a5e;
+      --category-text: #cbd5e0;
+    }
 
-      .palette {
-        width: 20% !important;
-      }
+    body {
+      display: flex;
+      gap: 20px;
+      font-family: "Segoe UI", Roboto, -apple-system, BlinkMacSystemFont,
+        sans-serif;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-      .palette,
-      .canvas {
-        width: 100%;
-        background: var(--panel-bg);
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        border: 1px solid var(--border-color);
-        transition: all 0.3s ease;
-      }
+    .palette {
+      width: 20% !important;
+    }
 
-      .component {
-        border: 1px solid var(--border-color);
-        padding: 12px;
-        background-color: var(--component-bg);
-        margin-bottom: 10px;
-        cursor: move;
-        position: relative;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      }
+    .palette,
+    .canvas {
+      width: 100%;
+      background: var(--panel-bg);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
 
-      .component:hover {
-        background-color: var(--component-hover);
-        border-color: var(--primary-color);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
+    .component {
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      background-color: var(--component-bg);
+      margin-bottom: 10px;
+      cursor: move;
+      position: relative;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
 
-      .component.ui-draggable-dragging {
-        opacity: 0.95;
-        transform: rotate(2deg) scale(1.02);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-      }
+    .component:hover {
+      background-color: var(--component-hover);
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
-      .drop-zone {
-        border: 2px dashed var(--border-color);
-        min-height: 50px;
-        padding: 15px;
-        margin-top: 10px;
-        border-radius: 8px;
-        background-color: var(--dropzone-bg);
-        transition: all 0.2s ease;
-      }
+    .component.ui-draggable-dragging {
+      opacity: 0.95;
+      transform: rotate(2deg) scale(1.02);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+    }
 
-      .drop-zone.ui-droppable-active {
-        background-color: var(--dropzone-active);
-        border-color: var(--primary-color);
-      }
+    .drop-zone {
+      border: 2px dashed var(--border-color);
+      min-height: 50px;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+      background-color: var(--dropzone-bg);
+      transition: all 0.2s ease;
+    }
 
-      .drop-zone.ui-droppable-hover {
-        background-color: var(--dropzone-hover);
-        border-style: solid;
-      }
+    .drop-zone.ui-droppable-active {
+      background-color: var(--dropzone-active);
+      border-color: var(--primary-color);
+    }
 
-      .nested {
-        margin-left: 20px;
-        background: var(--dropzone-bg);
-      }
+    .drop-zone.ui-droppable-hover {
+      background-color: var(--dropzone-hover);
+      border-style: solid;
+    }
 
-      pre {
-        background: var(--dropzone-bg);
-        padding: 15px;
-        max-height: 400px;
-        overflow: auto;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        font-family: "Consolas", "Monaco", monospace;
-        font-size: 13px;
-        line-height: 1.4;
-      }
+    .nested {
+      margin-left: 20px;
+      background: var(--dropzone-bg);
+    }
 
-      .delete-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        background: var(--danger-color);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: 12px;
-        cursor: pointer;
-        width: 22px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.7;
-        transition: all 0.2s;
-      }
+    pre {
+      background: var(--dropzone-bg);
+      padding: 15px;
+      max-height: 400px;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-family: "Consolas", "Monaco", monospace;
+      font-size: 13px;
+      line-height: 1.4;
+    }
 
-      .delete-btn:hover {
-        opacity: 1;
-        background: var(--danger-hover);
-        transform: scale(1.1);
-      }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: var(--danger-color);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 12px;
+      cursor: pointer;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.7;
+      transition: all 0.2s;
+    }
 
-      .component-placeholder {
-        border: 2px dashed var(--primary-color);
-        height: 50px;
-        margin: 5px 0;
-        background-color: var(--dropzone-active);
-        border-radius: 8px;
-      }
+    .delete-btn:hover {
+      opacity: 1;
+      background: var(--danger-hover);
+      transform: scale(1.1);
+    }
 
-      h3 {
-        margin-top: 0;
-        color: var(--text-color);
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 10px;
-        font-weight: 600;
-      }
+    .component-placeholder {
+      border: 2px dashed var(--primary-color);
+      height: 50px;
+      margin: 5px 0;
+      background-color: var(--dropzone-active);
+      border-radius: 8px;
+    }
 
-      #exportJson {
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
+    h3 {
+      margin-top: 0;
+      color: var(--text-color);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+      font-weight: 600;
+    }
 
-      #exportJson:hover {
-        background-color: var(--primary-hover);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-      }
+    #exportJson {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
 
-      .palette h3 {
-        color: var(--primary-color);
-      }
+    #exportJson:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
 
-      .canvas h3 {
-        color: var(--success-color);
-      }
+    .palette h3 {
+      color: var(--primary-color);
+    }
 
-      .empty-message {
-        color: var(--empty-message-color);
-        font-style: italic;
-        text-align: center;
-        padding: 10px;
-      }
+    .canvas h3 {
+      color: var(--success-color);
+    }
 
-      .editor-panel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 280px;
-        height: 100vh;
-        background: var(--editor-bg);
-        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        overflow-y: auto;
-        border-left: 1px solid var(--border-color);
-        z-index: 999;
-        transition: all 0.3s ease;
-      }
+    .empty-message {
+      color: var(--empty-message-color);
+      font-style: italic;
+      text-align: center;
+      padding: 10px;
+    }
 
-      .editor-panel h3 {
-        margin-top: 0;
-        color: var(--primary-color);
-      }
+    .editor-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 280px;
+      height: 100vh;
+      background: var(--editor-bg);
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 1px solid var(--border-color);
+      z-index: 999;
+      transition: all 0.3s ease;
+      transform: translateX(100%);
+    }
 
-      .editor-panel label {
-        display: block;
-        margin-top: 15px;
-        font-weight: 500;
-        color: var(--text-color);
-      }
+    .editor-panel.visible {
+      transform: translateX(0);
+    }
 
-      .editor-panel input,
-      .editor-panel select {
-        width: 100%;
-        padding: 8px 12px;
-        margin-top: 6px;
-        box-sizing: border-box;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        background-color: var(--panel-bg);
-        color: var(--text-color);
-        transition: all 0.2s;
-      }
+    .editor-panel h3 {
+      margin-top: 0;
+      color: var(--primary-color);
+    }
 
-      .editor-panel input:focus,
-      .editor-panel select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
-      }
+    .editor-panel label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 500;
+      color: var(--text-color);
+    }
 
-      .editor-panel input[type="checkbox"] {
-        width: auto;
-        margin-right: 8px;
-      }
+    .editor-panel input,
+    .editor-panel select {
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 6px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--panel-bg);
+      color: var(--text-color);
+      transition: all 0.2s;
+    }
 
-      .checkbox-group {
-        margin-top: 10px;
-      }
+    .editor-panel input:focus,
+    .editor-panel select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+    }
 
-      .checkbox-group label {
-        display: flex;
-        align-items: center;
-        margin-top: 5px;
-        font-weight: normal;
-        cursor: pointer;
-      }
+    .editor-panel input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
 
-      .drag-helper {
-        background: var(--component-bg) !important;
-        border: 1px solid var(--primary-color) !important;
-        padding: 8px 12px !important;
-        border-radius: 8px !important;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
-        color: var(--text-color) !important;
-      }
+    .checkbox-group {
+      margin-top: 10px;
+    }
 
-      #toggleEditor {
-        position: fixed;
-        top: 10px;
-        right: 300px;
-        z-index: 1000;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 8px 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+      font-weight: normal;
+      cursor: pointer;
+    }
 
-      #toggleEditor:hover {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-      }
+    .drag-helper {
+      background: var(--component-bg) !important;
+      border: 1px solid var(--primary-color) !important;
+      padding: 8px 12px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+      color: var(--text-color) !important;
+    }
 
-      #toggleDarkMode {
-        position: fixed;
-        top: 10px;
-        left: 20px;
-        z-index: 1000;
-        background: var(--panel-bg);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 8px 12px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
+    /* New styles for categorized components */
+    .component-category {
+      margin-bottom: 20px;
+    }
 
-      #toggleDarkMode:hover {
-        background: var(--component-hover);
-      }
-    </style>
-  </head>
-  <body>
-    <button id="toggleDarkMode">Toggle Dark Mode</button>
+    .category-header {
+      background-color: var(--category-bg);
+      color: var(--category-text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
 
-    <div class="palette">
-      <h3>Component List</h3>
-      <div class="component" data-type="Text" data-data="Hello World">Text</div>
-      <div class="component" data-type="Container">Container</div>
-      <div class="component" data-type="ListView">ListView</div>
-      <div class="component" data-type="Stack">Stack</div>
-      <div class="component" data-type="Positioned">Positioned</div>
-      <div class="component" data-type="Column">Column</div>
-      <div class="component" data-type="ElevatedButton">ElevatedButton</div>
-      <div class="component" data-type="TextButton">TextButton</div>
-      <div class="component" data-type="Row">Row</div>
-      <div class="component" data-type="Icon" data-data="favorite">Icon</div>
-      <div class="component" data-type="BottomNavigationBar">
-        BottomNavigationBar
-      </div>
-      <div
-        class="component"
-        data-type="BottomNavigationBarItem"
-        data-label="Item"
-        data-icon="home"
-      >
-        BottomNavigationBarItem
-      </div>
+    .category-header:hover {
+      background-color: var(--component-hover);
+    }
 
-      <div
-        class="component"
-        data-type="NetworkImage"
-        data-src="https://example.com/image.png"
-      >
-        NetworkImage
+    .category-header::after {
+      content: "▼";
+      font-size: 0.8em;
+      transition: transform 0.2s ease;
+    }
+
+    .category-header.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .category-content {
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .category-content.collapsed {
+      max-height: 0;
+    }
+
+    .search-box {
+      padding: 8px 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: var(--panel-bg);
+      color: var(--text-color);
+      transition: all 0.2s;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.2);
+    }
+
+    /* Control buttons styles */
+    .control-buttons {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .control-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--panel-bg);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .control-btn:hover {
+      background: var(--component-hover);
+      transform: translateY(-2px);
+    }
+
+    .control-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    .control-btn i {
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="control-buttons">
+    <div class="control-btn" id="toggleDarkMode" title="Toggle Dark Mode">
+      <i class="fas fa-moon"></i>
+    </div>
+    <div class="control-btn" id="toggleEditor" title="Toggle Editor">
+      <i class="fas fa-sliders-h"></i>
+    </div>
+  </div>
+
+  <div class="palette">
+    <h3>Component Library</h3>
+    <input type="text" class="search-box" placeholder="Search components..." id="componentSearch">
+
+    <div class="component-category">
+      <div class="category-header">Basic Widgets</div>
+      <div class="category-content">
+        <div class="component" data-type="Text" data-data="Hello World">Text</div>
+        <div class="component" data-type="Container">Container</div>
+        <div class="component" data-type="Icon" data-data="favorite">Icon</div>
+        <div class="component" data-type="NetworkImage" data-src="https://example.com/image.png">NetworkImage</div>
       </div>
     </div>
 
-    <div class="canvas">
-      <h3>Canvas (Scaffold)</h3>
-
-      <h4>Body</h4>
-      <div id="canvas-body" class="drop-zone" data-slot="body">
-        <div class="empty-message">Drop body content here</div>
+    <div class="component-category">
+      <div class="category-header">Layout Widgets</div>
+      <div class="category-content">
+        <div class="component" data-type="Row">Row</div>
+        <div class="component" data-type="Column">Column</div>
+        <div class="component" data-type="Stack">Stack</div>
+        <div class="component" data-type="Expanded">Expanded</div>
+        <div class="component" data-type="Positioned">Positioned</div>
       </div>
-
-      <h4>Bottom Navigation Bar</h4>
-      <div
-        id="canvas-bottom-nav"
-        class="drop-zone"
-        data-slot="bottomNavigationBar"
-      >
-        <div class="empty-message">Drop BottomNavigationBar here</div>
-      </div>
-
-      <br />
-      <button id="exportJson">Export JSON</button>
-      <pre id="jsonOutput">{}</pre>
     </div>
 
-    <div id="editorPanel" style="display: none" class="editor-panel">
-      <button id="toggleEditor">Toggle Editor</button>
-      <h3>Edit Properties</h3>
-      <form id="editorForm"></form>
+    <div class="component-category">
+      <div class="category-header">Lists & Containers</div>
+      <div class="category-content">
+        <div class="component" data-type="ListView">ListView</div>
+      </div>
     </div>
 
-    <script>
-      let compCounter = 0;
-      const iconMap = {
-        home: { codePoint: 0xe88a, fontFamily: "MaterialIcons" },
-        favorite: { codePoint: 0xe87d, fontFamily: "MaterialIcons" },
-        settings: { codePoint: 0xe8b8, fontFamily: "MaterialIcons" },
-      };
+    <div class="component-category">
+      <div class="category-header">Buttons</div>
+      <div class="category-content">
+        <div class="component" data-type="ElevatedButton">ElevatedButton</div>
+        <div class="component" data-type="TextButton">TextButton</div>
+      </div>
+    </div>
+  </div>
 
-      $("#toggleDarkMode").click(() => {
-        $("body").toggleClass("dark-mode");
-      });
+  <div class="canvas">
+    <h3>Canvas (Scaffold)</h3>
 
-      $("#toggleEditor").click(() => {
-        $("#editorPanel").fadeToggle();
-      });
+    <h4>Body</h4>
+    <div id="canvas-body" class="drop-zone" data-slot="body">
+      <div class="empty-message">Drop body content here</div>
+    </div>
 
-      function makeDroppable($zone) {
-        const slot = $zone.data("slot");
-        const accept =
-          slot === "bottomNavigationBar"
-            ? ".component[data-type='BottomNavigationBar']"
-            : slot === "items"
+    <br />
+    <button id="exportJson">Export JSON</button>
+    <pre id="jsonOutput">{}</pre>
+  </div>
+
+  <div id="editorPanel" class="editor-panel">
+    <h3>Edit Properties</h3>
+    <form id="editorForm"></form>
+  </div>
+
+  <script>
+    let compCounter = 0;
+    const iconMap = {
+      home: { codePoint: 0xe88a, fontFamily: "MaterialIcons" },
+      favorite: { codePoint: 0xe87d, fontFamily: "MaterialIcons" },
+      settings: { codePoint: 0xe8b8, fontFamily: "MaterialIcons" },
+    };
+
+    // Toggle dark mode with icon
+    $("#toggleDarkMode").click(() => {
+      $("body").toggleClass("dark-mode");
+      $("#toggleDarkMode").toggleClass("active");
+      const isDark = $("body").hasClass("dark-mode");
+      $("#toggleDarkMode i").toggleClass("fa-moon fa-sun");
+      $("#toggleDarkMode").attr("title", isDark ? "Toggle Light Mode" : "Toggle Dark Mode");
+    });
+
+    $(document).on("click", function (e) {
+      // Jika klik bukan pada editor atau tombol toggle
+      if (
+        !$(e.target).closest("#editorPanel").length &&
+        !$(e.target).closest("#toggleEditor").length &&
+        !$(e.target).closest(".component").length
+      ) {
+        $("#editorPanel").removeClass("visible");
+        $("#toggleEditor").removeClass("active");
+      }
+    });
+
+    // Toggle editor panel with icon
+    $("#toggleEditor").click(() => {
+      $("#editorPanel").toggleClass("visible");
+      $("#toggleEditor").toggleClass("active");
+    });
+
+    function makeDroppable($zone) {
+      const slot = $zone.data("slot");
+      const accept =
+        slot === "bottomNavigationBar"
+          ? ".component[data-type='BottomNavigationBar']"
+          : slot === "items"
             ? ".component[data-type='BottomNavigationBarItem']"
             : ".component";
-        $zone
-          .droppable({
-            accept: ".component",
-            greedy: true,
-            hoverClass: "ui-droppable-hover",
-            drop: function (event, ui) {
-              const $dragged = $(ui.draggable);
-              const isClone = !$dragged.hasClass("nested");
-              const $el = isClone ? createComponent($dragged) : $dragged;
+      $zone
+        .droppable({
+          accept: ".component",
+          greedy: true,
+          hoverClass: "ui-droppable-hover",
+          drop: function (event, ui) {
+            const $dragged = $(ui.draggable);
+            const isClone = !$dragged.hasClass("nested");
+            const $el = isClone ? createComponent($dragged) : $dragged;
 
-              // Prevent dropping onto itself
-              if (!$el.is(this) && !$el.has(this).length) {
-                if (isClone) {
-                  // For drop in body, replace root
-                  if ($(this).data("slot") === "body") {
-                    $(this).empty();
-                    $(this).removeClass("has-content");
-                  }
-                  $(this).append($el);
-                } else {
-                  $(this).append($el);
+            // Prevent dropping onto itself
+            if (!$el.is(this) && !$el.has(this).length) {
+              if (isClone) {
+                // For drop in body, replace root
+                if ($(this).data("slot") === "body") {
+                  $(this).empty();
+                  $(this).removeClass("has-content");
                 }
+                $(this).append($el);
+              } else {
+                $(this).append($el);
+              }
 
-                // Update empty state
-                if ($(this).children(".component").length > 0) {
-                  $(this).addClass("has-content");
-                  $(this).find(".empty-message").hide();
-                }
+              // Update empty state
+              if ($(this).children(".component").length > 0) {
+                $(this).addClass("has-content");
+                $(this).find(".empty-message").hide();
               }
-            },
-          })
-          .sortable({
-            connectWith: ".drop-zone",
-            placeholder: "component-placeholder",
-            tolerance: "pointer",
-            forcePlaceholderSize: true,
-            revert: 100,
-            start: function (e, ui) {
-              ui.placeholder.height(ui.helper.outerHeight());
-            },
-            update: function () {
-              // Update empty state when items are sorted
-              if ($(this).children(".component").length === 0) {
-                $(this).removeClass("has-content");
-                $(this).find(".empty-message").show();
-              }
-            },
-          });
+            }
+          },
+        })
+        .sortable({
+          connectWith: ".drop-zone",
+          placeholder: "component-placeholder",
+          tolerance: "pointer",
+          forcePlaceholderSize: true,
+          revert: 100,
+          start: function (e, ui) {
+            ui.placeholder.height(ui.helper.outerHeight());
+          },
+          update: function () {
+            // Update empty state when items are sorted
+            if ($(this).children(".component").length === 0) {
+              $(this).removeClass("has-content");
+              $(this).find(".empty-message").show();
+            }
+          },
+        });
+    }
+
+    function openEditor($comp) {
+      const type = $comp.data("type");
+      const id = $comp.data("id");
+      let formHtml = "";
+
+      if (type === "Expanded") {
+        formHtml += `
+          <label>Flex</label>
+          <input type="number" name="flex" value="${$comp.data("flex") || 1}" />
+        `;
       }
 
-      function openEditor($comp) {
-        const type = $comp.data("type");
-        const id = $comp.data("id");
-        let formHtml = "";
+      if (type === "Text") {
+        formHtml += `
+        <label>Text</label>
+        <input type="text" name="data" value="${$comp.data("data") || ""}" />
 
-        if (type === "Text") {
-          formHtml += `
-                <label>Text</label>
-                <input type="text" name="data" value="${
-                  $comp.data("data") || ""
-                }" />
+        <label>Text Align</label>
+        <select name="textAlign">
+          <option value="left">left</option>
+          <option value="right">right</option>
+          <option value="center">center</option>
+          <option value="justify">justify</option>
+          <option value="start">start</option>
+          <option value="end">end</option>
+        </select>
 
-                <label>Color</label>
-                <input type="color" name="color" value="${
-                  $comp.data("color") || "#000000"
-                }" />
+        <label>Overflow</label>
+        <select name="overflow">
+          <option value="ellipsis">ellipsis</option>
+          <option value="clip">clip</option>
+          <option value="fade">fade</option>
+        </select>
 
-                <label>Font Size</label>
-                <input type="number" name="fontSize" value="${
-                  $comp.data("fontSize") || 16
-                }" />
+        <label>Max Lines</label>
+        <input type="number" name="maxLines" value="${$comp.data("maxLines") || ""}" />
 
-                <label>Font Style</label>
-                <div class="checkbox-group">
-                <label><input type="checkbox" name="bold" ${
-                  $comp.data("bold") ? "checked" : ""
-                }> Bold</label>
-                <label><input type="checkbox" name="italic" ${
-                  $comp.data("italic") ? "checked" : ""
-                }> Italic</label>
-                <label><input type="checkbox" name="underline" ${
-                  $comp.data("underline") ? "checked" : ""
-                }> Underline</label>
-                </div>
-            `;
-        }
+        <label>Semantics Label</label>
+        <input type="text" name="semanticsLabel" value="${$comp.data("semanticsLabel") || ""}" />
 
-        if (type === "BottomNavigationBar") {
-          formHtml += `
+        <label>Soft Wrap</label>
+        <select name="softWrap">
+          <option value="true" ${$comp.data("softWrap") !== "false" ? "selected" : ""}>true</option>
+          <option value="false" ${$comp.data("softWrap") === "false" ? "selected" : ""}>false</option>
+        </select>
+
+        <label>Text Direction</label>
+        <select name="textDirection">
+          <option value="ltr">ltr</option>
+          <option value="rtl">rtl</option>
+        </select>
+
+        <label>Text Scale Factor</label>
+        <input type="number" step="0.1" name="textScaleFactor" value="${$comp.data("textScaleFactor") || ""}" />
+      `;
+
+      }
+
+      if (type === "ListView") {
+        formHtml += `
+          <label>Scroll Direction</label>
+          <select name="scrollDirection">
+            <option value="vertical">vertical</option>
+            <option value="horizontal">horizontal</option>
+          </select>
+
+          <label>Reverse</label>
+          <select name="reverse">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+
+          <label>Shrink Wrap</label>
+          <select name="shrinkWrap">
+            <option value="false">false</option>
+            <option value="true">true</option>
+          </select>
+
+          <label>Cache Extent</label>
+          <input type="number" name="cacheExtent" value="${$comp.data("cacheExtent") || 0}" />
+
+          <label>Padding (left,top,right,bottom)</label>
+          <input type="text" name="padding" value="${$comp.data("padding") || "0,0,0,0"}" />
+
+          <label>Item Extent</label>
+          <input type="number" name="itemExtent" value="${$comp.data("itemExtent") || ""}" />
+
+          <label>Page Size</label>
+          <input type="number" name="pageSize" value="${$comp.data("pageSize") || ""}" />
+
+          <label>Load More URL</label>
+          <input type="text" name="loadMoreUrl" value="${$comp.data("loadMoreUrl") || ""}" />
+
+          <label>Is Demo</label>
+          <select name="isDemo">
+            <option value="false">false</option>
+            <option value="true" ${$comp.data("isDemo") === "true" ? "selected" : ""}>true</option>
+          </select>
+        `;
+      }
+
+
+      if (type === "BottomNavigationBar") {
+        formHtml += `
     <label>Background Color</label>
-    <input type="color" name="backgroundColor" value="${
-      $comp.data("backgroundColor") || "#FFFFFF"
-    }" />
+    <input type="color" name="backgroundColor" value="${$comp.data("backgroundColor") || "#FFFFFF"
+          }" />
     
     <label>Current Index</label>
-    <input type="number" name="currentIndex" value="${
-      $comp.data("currentIndex") || 0
-    }" />
+    <input type="number" name="currentIndex" value="${$comp.data("currentIndex") || 0
+          }" />
   `;
-        }
+      }
 
-        if (type === "BottomNavigationBarItem") {
-          formHtml += `
+      if (type === "BottomNavigationBarItem") {
+        formHtml += `
                 <label>Label</label>
-                <input type="text" name="label" value="${
-                  $comp.data("label") || "Item"
-                }" />
+                <input type="text" name="label" value="${$comp.data("label") || "Item"
+          }" />
                 <label>Icon</label>
                 <select name="icon">
-                <option value="home" ${
-                  $comp.data("icon") === "home" ? "selected" : ""
-                }>home</option>
-                <option value="favorite" ${
-                  $comp.data("icon") === "favorite" ? "selected" : ""
-                }>favorite</option>
-                <option value="settings" ${
-                  $comp.data("icon") === "settings" ? "selected" : ""
-                }>settings</option>
+                <option value="home" ${$comp.data("icon") === "home" ? "selected" : ""
+          }>home</option>
+                <option value="favorite" ${$comp.data("icon") === "favorite" ? "selected" : ""
+          }>favorite</option>
+                <option value="settings" ${$comp.data("icon") === "settings" ? "selected" : ""
+          }>settings</option>
                 </select>
             `;
-        }
+      }
 
-        if (type === "ElevatedButton" || type === "TextButton") {
-          formHtml += `
+      if (type === "ElevatedButton" || type === "TextButton") {
+        formHtml += `
             <label>Click Event</label>
-            <input type="text" name="click_event" value="${
-              $comp.data("click_event") || ""
-            }" />
+            <input type="text" name="click_event" value="${$comp.data("click_event") || ""
+          }" />
             
             <label>Text Color</label>
-            <input type="color" name="textColor" value="${
-              ($comp.data("textStyle") && $comp.data("textStyle").color) ||
-              "#000000"
-            }" />
+            <input type="color" name="textColor" value="${($comp.data("textStyle") && $comp.data("textStyle").color) ||
+          "#000000"
+          }" />
             
             <label>Text Font Style</label>
             <select name="textFontStyle">
             <option value="">Normal</option>
-            <option value="italic" ${
-              $comp.data("textStyle") &&
-              $comp.data("textStyle").fontStyle === "italic"
-                ? "selected"
-                : ""
-            }>Italic</option>
-            <option value="normal" ${
-              $comp.data("textStyle") &&
-              $comp.data("textStyle").fontStyle === "normal"
-                ? "selected"
-                : ""
-            }>Normal</option>
+            <option value="italic" ${$comp.data("textStyle") &&
+            $comp.data("textStyle").fontStyle === "italic"
+            ? "selected"
+            : ""
+          }>Italic</option>
+            <option value="normal" ${$comp.data("textStyle") &&
+            $comp.data("textStyle").fontStyle === "normal"
+            ? "selected"
+            : ""
+          }>Normal</option>
             </select>
         `;
-        }
-
-        if (type === "NetworkImage") {
-          formHtml += `
-                <label>Image URL</label>
-                <input type="text" name="src" value="${
-                  $comp.data("src") || ""
-                }" />
-            `;
-        }
-
-        if (type === "Container") {
-          formHtml += `
-      <label>Width</label>
-      <input type="number" name="width" value="${$comp.data("width") || 100}" />
-      <label>Height</label>
-      <input type="number" name="height" value="${
-        $comp.data("height") || 100
-      }" />
-      <label>Color</label>
-      <input type="color" name="color" value="${
-        $comp.data("color") || "#00FFFF"
-      }" />
-    `;
-        }
-
-        if (type === "Positioned") {
-          formHtml += `
-            <label>Top</label>
-            <input type="number" name="top" value="${
-              $comp.attr("data-top") || 0
-            }" />
-            <label>Left</label>
-            <input type="number" name="left" value="${
-              $comp.attr("data-left") || 0
-            }" />
-        `;
-        }
-
-        if (type === "Icon") {
-          formHtml += `
-      <label>Icon Name</label>
-      <select name="data">
-        <option value="favorite" ${
-          $comp.data("data") === "favorite" ? "selected" : ""
-        }>favorite</option>
-        <option value="audiotrack" ${
-          $comp.data("data") === "audiotrack" ? "selected" : ""
-        }>audiotrack</option>
-        <option value="beach_access" ${
-          $comp.data("data") === "beach_access" ? "selected" : ""
-        }>beach_access</option>
-      </select>
-      <label>Color</label>
-      <input type="color" name="color" value="${
-        $comp.data("color") || "#000000"
-      }" />
-      <label>Size</label>
-      <input type="number" name="size" value="${$comp.data("size") || 24}" />
-    `;
-        }
-
-        $("#editorForm").html(formHtml);
-        $("#editorPanel").fadeIn();
-
-        // Simpan data ke komponen saat input berubah
-        $("#editorForm input, #editorForm select").on(
-          "input change",
-          function () {
-            const name = $(this).attr("name");
-            let value;
-
-            if ($(this).attr("type") === "checkbox") {
-              value = $(this).is(":checked");
-            } else {
-              value = $(this).val();
-            }
-
-            // Simpan ke data attribute
-            $comp.data(name, value);
-
-            const type = $comp.data("type");
-
-            if (type === "NetworkImage") {
-              const src = $comp.data("src") || "";
-              $comp
-                .find("div:first")
-                .html(
-                  `<strong>NetworkImage</strong>: <img src="${src}" width="100" />`
-                );
-            }
-
-            if (type === "BottomNavigationBarItem") {
-              $comp.data("label", $comp.find("input[name='label']").val());
-              $comp.data("icon", $comp.find("select[name='icon']").val());
-
-              // Update preview
-              $comp
-                .find("div:first")
-                .html(
-                  `<strong>BottomNavigationBarItem</strong>: ${$comp.data(
-                    "label"
-                  )} (${$comp.data("icon")})`
-                );
-            }
-
-            // Re-render preview khusus untuk Text
-            if (type === "Text") {
-              const text = $comp.data("data") || "";
-              const isBold = $comp.data("bold");
-              const isItalic = $comp.data("italic");
-              const isUnderline = $comp.data("underline");
-
-              let style = "";
-              if (isBold) style += "font-weight:bold;";
-              if (isItalic) style += "font-style:italic;";
-              if (isUnderline) style += "text-decoration:underline;";
-              if ($comp.data("color")) style += `color:${$comp.data("color")};`;
-              if ($comp.data("fontSize"))
-                style += `font-size:${$comp.data("fontSize")}px;`;
-
-              // Update isi komponen
-              $comp
-                .find("div:first")
-                .html(
-                  `<strong>Text</strong>: <span style="${style}">${text}</span>`
-                );
-            }
-
-            if (type === "Container") {
-              const bgColor = $comp.data("color") || "#00FFFF";
-              const width = $comp.data("width") || 100;
-              const height = $comp.data("height") || 100;
-
-              $comp.css({
-                "background-color": bgColor,
-              });
-            }
-
-            if (type === "Positioned") {
-              if (name === "top" || name === "left") {
-                $comp.attr(`data-${name}`, value || 0);
-              }
-            }
-          }
-        );
       }
 
+      if (type === "NetworkImage") {
+        formHtml += `
+          <label>Image URL</label>
+          <input type="text" name="src" value="${$comp.data("src") || ""}" />
+
+          <label>Semantic Label</label>
+          <input type="text" name="semanticLabel" value="${$comp.data("semanticLabel") || ""}" />
+
+          <label>Exclude from Semantics</label>
+          <select name="excludeFromSemantics">
+            <option value="false">false</option>
+            <option value="true" ${$comp.data("excludeFromSemantics") === "true" ? "selected" : ""}>true</option>
+          </select>
+
+          <label>Scale</label>
+          <input type="number" step="0.1" name="scale" value="${$comp.data("scale") || ""}" />
+
+          <label>Width</label>
+          <input type="number" name="width" value="${$comp.data("width") || ""}" />
+
+          <label>Height</label>
+          <input type="number" name="height" value="${$comp.data("height") || ""}" />
+
+          <label>Color Overlay</label>
+          <input type="color" name="color" value="${$comp.data("color") || "#FFFFFF"}" />
+
+          <label>Blend Mode</label>
+          <input type="text" name="blendMode" value="${$comp.data("blendMode") || "srcIn"}" />
+
+          <label>Box Fit</label>
+          <input type="text" name="boxFit" value="${$comp.data("boxFit") || "none"}" />
+
+          <label>Alignment</label>
+          <input type="text" name="alignment" value="${$comp.data("alignment") || "center"}" />
+
+          <label>Repeat</label>
+          <input type="text" name="repeat" value="${$comp.data("repeat") || "noRepeat"}" />
+
+          <label>Center Slice (left,top,right,bottom)</label>
+          <input type="text" name="centerSlice" value="${$comp.data("centerSlice") || ""}" />
+
+          <label>Match Text Direction</label>
+          <select name="matchTextDirection">
+            <option value="false">false</option>
+            <option value="true" ${$comp.data("matchTextDirection") === "true" ? "selected" : ""}>true</option>
+          </select>
+
+          <label>Gapless Playback</label>
+          <select name="gaplessPlayback">
+            <option value="false">false</option>
+            <option value="true" ${$comp.data("gaplessPlayback") === "true" ? "selected" : ""}>true</option>
+          </select>
+
+          <label>Filter Quality</label>
+          <select name="filterQuality">
+            <option value="low">low</option>
+            <option value="none">none</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
+
+          <label>Click Event</label>
+          <input type="text" name="click_event" value="${$comp.data("click_event") || ""}" />
+        `;
+
+      }
+
+      if (type === "Container") {
+        formHtml += `
+          <label>Width</label>
+          <input type="number" name="width" value="${$comp.data("width") || ""}" />
+
+          <label>Height</label>
+          <input type="number" name="height" value="${$comp.data("height") || ""}" />
+
+          <label>Color</label>
+          <input type="color" name="color" value="${$comp.data("color") || "#00FFFF"}" />
+
+          <label>Alignment</label>
+          <select name="alignment">
+            <option value="topLeft">topLeft</option>
+            <option value="topCenter">topCenter</option>
+            <option value="topRight">topRight</option>
+            <option value="centerLeft">centerLeft</option>
+            <option value="center">center</option>
+            <option value="centerRight">centerRight</option>
+            <option value="bottomLeft">bottomLeft</option>
+            <option value="bottomCenter">bottomCenter</option>
+            <option value="bottomRight">bottomRight</option>
+          </select>
+
+          <label>Padding (left,top,right,bottom)</label>
+          <input type="text" name="padding" value="${$comp.data("padding") || "0,0,0,0"}" />
+
+          <label>Margin (left,top,right,bottom)</label>
+          <input type="text" name="margin" value="${$comp.data("margin") || "0,0,0,0"}" />
+
+          <label>Constraints (JSON)</label>
+          <input type="text" name="constraints" placeholder='{"minWidth":100,...}' value='${$comp.data("constraints") || ""}' />
+
+          <label>Click Event</label>
+          <input type="text" name="click_event" value="${$comp.data("click_event") || ""}" />
+        `;
+      }
+
+
+      if (type === "Positioned") {
+        formHtml += `
+            <label>Top</label>
+            <input type="number" name="top" value="${$comp.attr("data-top") || 0
+          }" />
+            <label>Left</label>
+            <input type="number" name="left" value="${$comp.attr("data-left") || 0
+          }" />
+        `;
+      }
+
+      if (type === "Icon") {
+        formHtml += `
+          <label>Icon Name</label>
+          <select name="data">
+            <option value="favorite" ${$comp.data("data") === "favorite" ? "selected" : ""
+          }>favorite</option>
+            <option value="audiotrack" ${$comp.data("data") === "audiotrack" ? "selected" : ""
+          }>audiotrack</option>
+            <option value="beach_access" ${$comp.data("data") === "beach_access" ? "selected" : ""
+          }>beach_access</option>
+          </select>
+          <label>Color</label>
+          <input type="color" name="color" value="${$comp.data("color") || "#000000"
+          }" />
+          <label>Size</label>
+          <input type="number" name="size" value="${$comp.data("size") || 24}" />
+        `;
+      }
+
+      if (type === "Row") {
+        formHtml += `
+          <label>Main Axis Alignment</label>
+          <select name="mainAxisAlignment">
+            <option value="start">start</option>
+            <option value="end">end</option>
+            <option value="center">center</option>
+            <option value="spaceBetween">spaceBetween</option>
+            <option value="spaceAround">spaceAround</option>
+            <option value="spaceEvenly">spaceEvenly</option>
+          </select>
+
+          <label>Cross Axis Alignment</label>
+          <select name="crossAxisAlignment">
+            <option value="start">start</option>
+            <option value="center">center</option>
+            <option value="end">end</option>
+            <option value="stretch">stretch</option>
+            <option value="baseline">baseline</option>
+          </select>
+
+          <label>Main Axis Size</label>
+          <select name="mainAxisSize">
+            <option value="max">max</option>
+            <option value="min">min</option>
+          </select>
+
+          <label>Text Baseline</label>
+          <select name="textBaseline">
+            <option value="ideographic">ideographic</option>
+            <option value="alphabetic">alphabetic</option>
+          </select>
+
+          <label>Text Direction</label>
+          <select name="textDirection">
+            <option value="ltr">ltr</option>
+            <option value="rtl">rtl</option>
+          </select>
+
+          <label>Vertical Direction</label>
+          <select name="verticalDirection">
+            <option value="down">down</option>
+            <option value="up">up</option>
+          </select>
+        `;
+      }
+
+      $("#editorForm").html(formHtml);
+      $("#editorPanel").addClass("visible");
+
+      // Simpan data ke komponen saat input berubah
       $("#editorForm input, #editorForm select").on(
         "input change",
         function () {
@@ -724,9 +914,35 @@
             value = $(this).val();
           }
 
+          // Simpan ke data attribute
           $comp.data(name, value);
 
-          // Re-render preview untuk komponen Text
+          const type = $comp.data("type");
+
+          if (type === "NetworkImage") {
+            const src = $comp.data("src") || "";
+            $comp
+              .find("div:first")
+              .html(
+                `<strong>NetworkImage</strong>: <img src="${src}" width="100" />`
+              );
+          }
+
+          if (type === "BottomNavigationBarItem") {
+            $comp.data("label", $comp.find("input[name='label']").val());
+            $comp.data("icon", $comp.find("select[name='icon']").val());
+
+            // Update preview
+            $comp
+              .find("div:first")
+              .html(
+                `<strong>BottomNavigationBarItem</strong>: ${$comp.data(
+                  "label"
+                )} (${$comp.data("icon")})`
+              );
+          }
+
+          // Re-render preview khusus untuk Text
           if (type === "Text") {
             const text = $comp.data("data") || "";
             const isBold = $comp.data("bold");
@@ -741,391 +957,518 @@
             if ($comp.data("fontSize"))
               style += `font-size:${$comp.data("fontSize")}px;`;
 
+            // Update isi komponen
             $comp
               .find("div:first")
               .html(
                 `<strong>Text</strong>: <span style="${style}">${text}</span>`
               );
           }
+
+          if (type === "Container") {
+            const bgColor = $comp.data("color") || "#00FFFF";
+            const width = $comp.data("width") || null;
+            const height = $comp.data("height") || null;
+
+            $comp.css({
+              "background-color": bgColor,
+            });
+          }
+
+          if (type === "Positioned") {
+            if (name === "top" || name === "left") {
+              $comp.attr(`data-${name}`, value || 0);
+            }
+          }
         }
       );
+    }
 
-      function createComponent($template) {
-        const type = $template.data("type");
-        const data = $template.data("data") || null;
-        const id = `comp-${++compCounter}`;
+    $("#editorForm input, #editorForm select").on(
+      "input change",
+      function () {
+        const name = $(this).attr("name");
+        let value;
 
-        const $comp = $(`
-          <div class="component nested" data-type="${type}" data-id="${id}" data-data="${
-          data || ""
+        if ($(this).attr("type") === "checkbox") {
+          value = $(this).is(":checked");
+        } else {
+          value = $(this).val();
+        }
+
+        $comp.data(name, value);
+
+        // Re-render preview untuk komponen Text
+        if (type === "Text") {
+          const text = $comp.data("data") || "";
+          const isBold = $comp.data("bold");
+          const isItalic = $comp.data("italic");
+          const isUnderline = $comp.data("underline");
+
+          let style = "";
+          if (isBold) style += "font-weight:bold;";
+          if (isItalic) style += "font-style:italic;";
+          if (isUnderline) style += "text-decoration:underline;";
+          if ($comp.data("color")) style += `color:${$comp.data("color")};`;
+          if ($comp.data("fontSize"))
+            style += `font-size:${$comp.data("fontSize")}px;`;
+
+          $comp
+            .find("div:first")
+            .html(
+              `<strong>Text</strong>: <span style="${style}">${text}</span>`
+            );
+        }
+      }
+    );
+
+    function createComponent($template) {
+      const type = $template.data("type");
+      const data = $template.data("data") || null;
+      const id = `comp-${++compCounter}`;
+
+      const $comp = $(`
+          <div class="component nested" data-type="${type}" data-id="${id}" data-data="${data || ""
         }">
             <button class="delete-btn" title="Delete">×</button>
             <div><strong>${type}</strong>${data ? ": " + data : ""}</div>
           </div>
         `);
 
-        $comp.click(function (e) {
-          e.stopPropagation();
-          openEditor($comp);
-        });
+      $comp.click(function (e) {
+        e.stopPropagation();
+        openEditor($comp);
+      });
 
-        $comp.draggable({
-          helper: "clone",
-          revert: "invalid",
-          scroll: true,
-          scrollSensitivity: 50,
-          scrollSpeed: 10,
-          distance: 5,
-          cursorAt: { top: 10, left: 10 },
-          start: function () {
-            $(this).addClass("dragging-source");
-          },
-          stop: function () {
-            $(this).removeClass("dragging-source");
-          },
-        });
+      $comp.draggable({
+        helper: "clone",
+        revert: "invalid",
+        scroll: true,
+        scrollSensitivity: 50,
+        scrollSpeed: 10,
+        distance: 5,
+        cursorAt: { top: 10, left: 10 },
+        start: function () {
+          $(this).addClass("dragging-source");
+        },
+        stop: function () {
+          $(this).removeClass("dragging-source");
+        },
+      });
 
-        $comp.find(".delete-btn").click(function (e) {
-          e.stopPropagation();
-          $comp.remove();
-          // Show empty message if zone becomes empty
-          const $parentZone = $comp.closest(".drop-zone");
-          if ($parentZone.children(".component").length === 0) {
-            $parentZone.removeClass("has-content");
-            $parentZone.find(".empty-message").show();
-          }
-        });
-
-        if (type === "Icon") {
-          $comp.attr("data-color", "#000000");
-          $comp.attr("data-size", 24.0);
-          // Tidak perlu child
+      $comp.find(".delete-btn").click(function (e) {
+        e.stopPropagation();
+        $comp.remove();
+        // Show empty message if zone becomes empty
+        const $parentZone = $comp.closest(".drop-zone");
+        if ($parentZone.children(".component").length === 0) {
+          $parentZone.removeClass("has-content");
+          $parentZone.find(".empty-message").show();
         }
+      });
 
-        // Khusus BottomNavigationBar
-        if (type === "BottomNavigationBar") {
-          $comp.attr("data-backgroundColor", "#FFFFFF");
-          $comp.attr("data-currentIndex", 0);
+      if (type === "Expanded") {
+        $comp.attr("data-flex", 1); // default flex 1
+        const childZone = $(`
+    <div class="drop-zone" data-slot="child">
+      <div class="empty-message">Drop child here</div>
+    </div>
+  `);
+        makeDroppable(childZone);
+        $comp.append(childZone);
+      }
 
-          // Drop zone untuk items BottomNavigationBarItem
-          const itemsZone = $(`
+      if (type === "Icon") {
+        $comp.attr("data-color", "#000000");
+        $comp.attr("data-size", 24.0);
+        // Tidak perlu child
+      }
+
+      // Khusus BottomNavigationBar
+      if (type === "BottomNavigationBar") {
+        $comp.attr("data-backgroundColor", "#FFFFFF");
+        $comp.attr("data-currentIndex", 0);
+
+        // Drop zone untuk items BottomNavigationBarItem
+        const itemsZone = $(`
       <div class="drop-zone" data-slot="items">
         <div class="empty-message">Drop BottomNavigationBar items here</div>
       </div>
     `);
-          makeDroppable(itemsZone);
-          $comp.append(itemsZone);
-        }
+        makeDroppable(itemsZone);
+        $comp.append(itemsZone);
+      }
 
-        // BottomNavigationBarItem default props
-        if (type === "BottomNavigationBarItem") {
-          $comp.attr("data-label", $template.data("label") || "Item");
-          $comp.attr("data-icon", $template.data("icon") || "home");
+      // BottomNavigationBarItem default props
+      if (type === "BottomNavigationBarItem") {
+        $comp.attr("data-label", $template.data("label") || "Item");
+        $comp.attr("data-icon", $template.data("icon") || "home");
 
-          // Update preview
-          $comp
-            .find("div:first")
-            .html(
-              `<strong>BottomNavigationBarItem</strong>: ${$comp.data(
-                "label"
-              )} (${$comp.data("icon")})`
-            );
-        }
-
-        if (type === "Container") {
-          const childZone = $(
-            `<div class="drop-zone" data-slot="child"><div class="empty-message">Drop child here</div></div>`
+        // Update preview
+        $comp
+          .find("div:first")
+          .html(
+            `<strong>BottomNavigationBarItem</strong>: ${$comp.data(
+              "label"
+            )} (${$comp.data("icon")})`
           );
-          makeDroppable(childZone);
-          $comp.append(childZone);
-        }
+      }
 
-        if (type === "Stack") {
-          const childrenZone = $(
-            `<div class="drop-zone" data-slot="children"><div class="empty-message">Drop stacked items here</div></div>`
+      if (type === "Container") {
+        const childZone = $(
+          `<div class="drop-zone" data-slot="child"><div class="empty-message">Drop child here</div></div>`
+        );
+        makeDroppable(childZone);
+        $comp.append(childZone);
+      }
+
+      if (type === "Stack") {
+        const childrenZone = $(
+          `<div class="drop-zone" data-slot="children"><div class="empty-message">Drop stacked items here</div></div>`
+        );
+        makeDroppable(childrenZone);
+        $comp.append(childrenZone);
+      }
+
+      if (type === "Positioned") {
+        $comp.attr("data-top", 0).attr("data-left", 0); // Default values
+        const childZone = $(
+          `<div class="drop-zone" data-slot="child"><div class="empty-message">Drop child here</div></div>`
+        );
+        makeDroppable(childZone);
+        $comp.append(childZone);
+      }
+
+      if (type === "NetworkImage") {
+        $comp.attr("data-src", data);
+        $comp
+          .find("div:first")
+          .html(
+            `<strong>NetworkImage</strong>: <img src="${data}" width="100" />`
           );
-          makeDroppable(childrenZone);
-          $comp.append(childrenZone);
-        }
+      }
 
-        if (type === "Positioned") {
-          $comp.attr("data-top", 0).attr("data-left", 0); // Default values
-          const childZone = $(
-            `<div class="drop-zone" data-slot="child"><div class="empty-message">Drop child here</div></div>`
-          );
-          makeDroppable(childZone);
-          $comp.append(childZone);
-        }
+      if (type === "ListView" || type === "Column") {
+        const childrenZone = $(
+          `<div class="drop-zone" data-slot="children"><div class="empty-message">Drop items here</div></div>`
+        );
+        makeDroppable(childrenZone);
+        $comp.append(childrenZone);
+      }
 
-        if (type === "NetworkImage") {
-          $comp.attr("data-src", data);
-          $comp
-            .find("div:first")
-            .html(
-              `<strong>NetworkImage</strong>: <img src="${data}" width="100" />`
-            );
-        }
-
-        if (type === "ListView" || type === "Column") {
-          const childrenZone = $(
-            `<div class="drop-zone" data-slot="children"><div class="empty-message">Drop items here</div></div>`
-          );
-          makeDroppable(childrenZone);
-          $comp.append(childrenZone);
-        }
-
-        if (type === "ElevatedButton" || type === "TextButton") {
-          const childZone = $(`
+      if (type === "ElevatedButton" || type === "TextButton") {
+        const childZone = $(`
                 <div class="drop-zone" data-slot="child">
                     <div class="empty-message">Drop button content here</div>
                 </div>
             `);
-          makeDroppable(childZone);
-          $comp.append(childZone);
-        }
+        makeDroppable(childZone);
+        $comp.append(childZone);
+      }
 
-        if (type === "Row") {
-          const childrenZone = $(`
+      if (type === "Row") {
+        const childrenZone = $(`
                 <div class="drop-zone" data-slot="children">
                     <div class="empty-message">Drop items here</div>
                 </div>
             `);
-          makeDroppable(childrenZone);
-          $comp.append(childrenZone);
-        }
-
-        return $comp;
+        makeDroppable(childrenZone);
+        $comp.append(childrenZone);
       }
 
-      makeDroppable($("#canvas-body"));
-      makeDroppable($("#canvas-bottom-nav"));
+      return $comp;
+    }
 
-      $(".palette .component").draggable({
-        helper: function () {
-          const type = $(this).data("type");
-          return $('<div class="drag-helper"></div>').text(type).css({
-            background: "var(--component-bg)",
-            border: "1px solid var(--primary-color)",
-            padding: "8px 12px",
-            "border-radius": "8px",
-            "box-shadow": "0 2px 4px rgba(0,0,0,0.2)",
-          });
-        },
-        revert: "invalid",
-        cursor: "move",
-        cursorAt: { top: 10, left: 10 },
-        zIndex: 1000,
-        scroll: false,
-        distance: 5,
-      });
+    makeDroppable($("#canvas-body"));
+    makeDroppable($("#canvas-bottom-nav"));
 
-      function parseComponent($el) {
-        const type = $el.data("type");
-        const data = $el.data("data");
-        const json = { type };
+    $(".palette .component").draggable({
+      helper: function () {
+        const type = $(this).data("type");
+        return $('<div class="drag-helper"></div>').text(type).css({
+          background: "var(--component-bg)",
+          border: "1px solid var(--primary-color)",
+          padding: "8px 12px",
+          "border-radius": "8px",
+          "box-shadow": "0 2px 4px rgba(0,0,0,0.2)",
+        });
+      },
+      revert: "invalid",
+      cursor: "move",
+      cursorAt: { top: 10, left: 10 },
+      zIndex: 1000,
+      scroll: false,
+      distance: 5,
+    });
 
-        if (type === "NetworkImage") {
-          json.src = $el.data("src");
-        }
+    function parseComponent($el) {
+      const type = $el.data("type");
+      const data = $el.data("data");
+      const json = { type };
 
-        if (type === "Text") {
-          json.data = data || "Default text";
-          json.style = json.style || {};
-
-          if ($el.data("color")) {
-            json.style.color = $el.data("color");
-          }
-          if ($el.data("fontSize")) {
-            json.style.fontSize = parseFloat($el.data("fontSize"));
-          }
-
-          if ($el.data("bold")) {
-            json.style.fontWeight = "bold";
-          }
-          if ($el.data("italic")) {
-            json.style.fontStyle = "italic";
-          }
-          if ($el.data("underline")) {
-            json.style.decoration = "underline";
-          }
-        }
-
-        // BottomNavigationBar parsing
-        if (type === "BottomNavigationBar") {
-          json.backgroundColor = $el.data("backgroundColor") || "#FFFFFF";
-          json.currentIndex = parseInt($el.data("currentIndex")) || 0;
-          json.items = [];
-
-          // Parse semua BottomNavigationBarItem di drop zone items
-          $el
-            .find('[data-slot="items"]')
-            .first()
-            .children(".component")
-            .each(function () {
-              json.items.push(parseComponent($(this)));
-            });
-        }
-
-        // BottomNavigationBarItem parsing
-        if (type === "BottomNavigationBarItem") {
-          json.label = $el.data("label") || "Item";
-          const iconName = $el.data("icon") || "home";
-          json.icon = {
-            type: "Icon",
-            codePoint:
-              iconMap[iconName]?.codePoint || iconMap["home"].codePoint,
-            fontFamily: iconMap[iconName]?.fontFamily || "MaterialIcons",
-          };
-        }
-
-        if (type === "BottomNavigationBar") {
-          json.backgroundColor = $el.data("backgroundColor") || "#FFFFFF";
-          json.currentIndex = parseInt($el.data("currentIndex")) || 0;
-          json.items = [];
-
-          $el
-            .find('[data-slot="items"]')
-            .first()
-            .children(".component")
-            .each(function () {
-              // Hanya parse jika komponen adalah BottomNavigationBarItem
-              if ($(this).data("type") === "BottomNavigationBarItem") {
-                json.items.push(parseComponent($(this)));
-              }
-            });
-        }
-
-        if (type === "Icon") {
-          json.data = data || "favorite";
-          json.color = $el.data("color") || "#000000";
-          json.size = parseFloat($el.data("size")) || 24.0;
-        }
-
-        if (type === "Stack") {
-          json.alignment = "topLeft";
-          json.children = [];
-          $el
-            .find('[data-slot="children"]')
-            .first()
-            .children(".component")
-            .each(function () {
-              json.children.push(parseComponent($(this)));
-            });
-        }
-
-        if (type === "Positioned") {
-          json.top = parseFloat($el.attr("data-top") || 0);
-          json.left = parseFloat($el.attr("data-left") || 0);
-          const child = $el
-            .find('[data-slot="child"]')
-            .first()
-            .children(".component")
-            .first();
-          if (child.length) {
-            json.child = parseComponent(child);
-          }
-        }
-
-        if (type === "Container") {
-          json.color = $el.data("color") || "#00FFFF";
-          json.width = parseFloat($el.data("width")) || 100;
-          json.height = parseFloat($el.data("height")) || 100;
-
-          const child = $el
-            .find('[data-slot="child"]')
-            .first()
-            .children(".component")
-            .first();
-          if (child.length) {
-            json.child = parseComponent(child);
-          }
-        }
-
-        if (type === "ListView" || type === "Column") {
-          json.padding = "10, 10, 10, 10";
-          json.children = [];
-          $el
-            .find('[data-slot="children"]')
-            .first()
-            .children(".component")
-            .each(function () {
-              json.children.push(parseComponent($(this)));
-            });
-        }
-
-        if (type === "ElevatedButton" || type === "TextButton") {
-          json.padding = $el.data("padding") || "8,8,8,8";
-          json.click_event = $el.data("click_event") || "";
-          json.textStyle = $el.data("textStyle") || {};
-          const child = $el
-            .find('[data-slot="child"]')
-            .first()
-            .children(".component")
-            .first();
-          if (child.length) {
-            json.child = parseComponent(child);
-          }
-        }
-
-        if (type === "Row") {
-          json.mainAxisAlignment = "start";
-          json.crossAxisAlignment = "start";
-          json.children = [];
-          $el
-            .find('[data-slot="children"]')
-            .first()
-            .children(".component")
-            .each(function () {
-              json.children.push(parseComponent($(this)));
-            });
-        }
-
-        if (type === "Icon") {
-          json.data = $el.data("data");
-          json.color = $el.data("color");
-          json.size = parseFloat($el.data("size"));
-        }
-
-        return json;
+      if (type === "NetworkImage") {
+        json.src = $el.data("src") || "";
+        json.semanticLabel = $el.data("semanticLabel") || "";
+        json.excludeFromSemantics = $el.data("excludeFromSemantics") === "true";
+        json.scale = parseFloat($el.data("scale")) || null;
+        json.width = parseFloat($el.data("width")) || null;
+        json.height = parseFloat($el.data("height")) || null;
+        json.color = $el.data("color") || null;
+        json.blendMode = $el.data("blendMode") || "srcIn";
+        json.boxFit = $el.data("boxFit") || "none";
+        json.alignment = $el.data("alignment") || "center";
+        json.repeat = $el.data("repeat") || "noRepeat";
+        json.centerSlice = $el.data("centerSlice") || null;
+        json.matchTextDirection = $el.data("matchTextDirection") === "true";
+        json.gaplessPlayback = $el.data("gaplessPlayback") === "true";
+        json.filterQuality = $el.data("filterQuality") || "low";
+        json.click_event = $el.data("click_event") || "";
       }
 
-      $("#exportJson").click(() => {
-        const bodyComp = $("#canvas-body").children(".component").first();
-        const bottomNavComp = $("#canvas-bottom-nav")
+      if (type === "Expanded") {
+        json.flex = parseInt($el.data("flex")) || 1;
+        const child = $el
+          .find('[data-slot="child"]')
+          .first()
           .children(".component")
           .first();
+        if (child.length) {
+          json.child = parseComponent(child);
+        }
+      }
 
-        // Perbaikan: Pastikan bottomNavComp adalah BottomNavigationBar
-        let bottomNavJson = null;
-        if (
-          bottomNavComp.length &&
-          bottomNavComp.data("type") === "BottomNavigationBar"
-        ) {
-          bottomNavJson = parseComponent(bottomNavComp);
+      if (type === "ListView") {
+        json.scrollDirection = $el.data("scrollDirection") || "vertical";
+        json.reverse = $el.data("reverse") === "true";
+        json.shrinkWrap = $el.data("shrinkWrap") === "true";
+        json.cacheExtent = parseFloat($el.data("cacheExtent") || 0);
+        json.padding = $el.data("padding") || "0,0,0,0";
+        if ($el.data("itemExtent")) {
+          json.itemExtent = parseFloat($el.data("itemExtent"));
+        }
+        if ($el.data("pageSize")) {
+          json.pageSize = parseInt($el.data("pageSize"));
+        }
+        if ($el.data("loadMoreUrl")) {
+          json.loadMoreUrl = $el.data("loadMoreUrl");
+        }
+        json.isDemo = $el.data("isDemo") === "true";
+
+        // Children
+        json.children = [];
+        $el
+          .find('[data-slot="children"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            json.children.push(parseComponent($(this)));
+          });
+      }
+
+      if (type === "Text") {
+        json.data = data || "Default text";
+        json.style = json.style || {};
+
+        if ($el.data("color")) json.style.color = $el.data("color");
+        if ($el.data("fontSize")) json.style.fontSize = parseFloat($el.data("fontSize"));
+        if ($el.data("bold")) json.style.fontWeight = "bold";
+        if ($el.data("italic")) json.style.fontStyle = "italic";
+        if ($el.data("underline")) json.style.decoration = "underline";
+
+        if ($el.data("textAlign")) json.textAlign = $el.data("textAlign");
+        if ($el.data("overflow")) json.overflow = $el.data("overflow");
+        if ($el.data("maxLines")) json.maxLines = parseInt($el.data("maxLines"));
+        if ($el.data("semanticsLabel")) json.semanticsLabel = $el.data("semanticsLabel");
+        if ($el.data("softWrap") !== undefined) json.softWrap = $el.data("softWrap") === true || $el.data("softWrap") === "true";
+        if ($el.data("textDirection")) json.textDirection = $el.data("textDirection");
+        if ($el.data("textScaleFactor")) json.textScaleFactor = parseFloat($el.data("textScaleFactor"));
+      }
+
+      // BottomNavigationBar parsing
+      if (type === "BottomNavigationBar") {
+        json.backgroundColor = $el.data("backgroundColor") || "#FFFFFF";
+        json.currentIndex = parseInt($el.data("currentIndex")) || 0;
+        json.items = [];
+
+        // Parse semua BottomNavigationBarItem di drop zone items
+        $el
+          .find('[data-slot="items"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            json.items.push(parseComponent($(this)));
+          });
+      }
+
+      // BottomNavigationBarItem parsing
+      if (type === "BottomNavigationBarItem") {
+        json.label = $el.data("label") || "Item";
+        const iconName = $el.data("icon") || "home";
+        json.icon = {
+          type: "Icon",
+          codePoint:
+            iconMap[iconName]?.codePoint || iconMap["home"].codePoint,
+          fontFamily: iconMap[iconName]?.fontFamily || "MaterialIcons",
+        };
+      }
+
+      if (type === "BottomNavigationBar") {
+        json.backgroundColor = $el.data("backgroundColor") || "#FFFFFF";
+        json.currentIndex = parseInt($el.data("currentIndex")) || 0;
+        json.items = [];
+
+        $el
+          .find('[data-slot="items"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            // Hanya parse jika komponen adalah BottomNavigationBarItem
+            if ($(this).data("type") === "BottomNavigationBarItem") {
+              json.items.push(parseComponent($(this)));
+            }
+          });
+      }
+
+      if (type === "Icon") {
+        json.data = data || "favorite";
+        json.color = $el.data("color") || "#000000";
+        json.size = parseFloat($el.data("size")) || 24.0;
+      }
+
+      if (type === "Stack") {
+        json.alignment = "topLeft";
+        json.children = [];
+        $el
+          .find('[data-slot="children"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            json.children.push(parseComponent($(this)));
+          });
+      }
+
+      if (type === "Positioned") {
+        json.top = parseFloat($el.attr("data-top") || 0);
+        json.left = parseFloat($el.attr("data-left") || 0);
+        const child = $el
+          .find('[data-slot="child"]')
+          .first()
+          .children(".component")
+          .first();
+        if (child.length) {
+          json.child = parseComponent(child);
+        }
+      }
+
+      if (type === "Container") {
+        json.color = $el.data("color") || "#00FFFF";
+        json.width = parseFloat($el.data("width")) || null;
+        json.height = parseFloat($el.data("height")) || null;
+        json.alignment = $el.data("alignment") || "topLeft";
+        json.padding = $el.data("padding") || null;
+        json.margin = $el.data("margin") || null;
+
+        if ($el.data("constraints")) {
+          try {
+            const constraints = JSON.parse($el.data("constraints"));
+            json.constraints = constraints;
+          } catch (e) {
+            console.warn("Invalid constraints JSON");
+          }
         }
 
-        const fullJson = {
-          type: "Scaffold",
-          appBar: {
-            type: "AppBar",
-            centerTitle: true,
-            backgroundColor: "#e1e1e1",
-            title: {
-              type: "Text",
-              data: "Dynamic Title",
-              style: {
-                color: "61000000",
-                fontSize: 20.0,
-                fontWeight: "normal",
-              },
-            },
-          },
-          body: bodyComp.length ? parseComponent(bodyComp) : null,
-          bottomNavigationBar: bottomNavJson,
-        };
+        json.click_event = $el.data("click_event") || "";
 
-        $("#jsonOutput").text(JSON.stringify(fullJson, null, 2));
+        // ✅ Tambahkan parsing child-nya di sini:
+        const child = $el.find('[data-slot="child"]').first().children(".component").first();
+        if (child.length) {
+          json.child = parseComponent(child);
+        }
+      }
+
+      if (type === "ListView" || type === "Column") {
+        json.padding = "10, 10, 10, 10";
+        json.children = [];
+        $el
+          .find('[data-slot="children"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            json.children.push(parseComponent($(this)));
+          });
+      }
+
+      if (type === "ElevatedButton" || type === "TextButton") {
+        json.padding = $el.data("padding") || "8,8,8,8";
+        json.click_event = $el.data("click_event") || "";
+        json.textStyle = $el.data("textStyle") || {};
+        const child = $el
+          .find('[data-slot="child"]')
+          .first()
+          .children(".component")
+          .first();
+        if (child.length) {
+          json.child = parseComponent(child);
+        }
+      }
+
+      if (type === "Row") {
+        json.mainAxisAlignment = $el.data("mainAxisAlignment") || "start";
+        json.crossAxisAlignment = $el.data("crossAxisAlignment") || "start";
+        json.mainAxisSize = $el.data("mainAxisSize") || "max";
+        json.textBaseline = $el.data("textBaseline") || "alphabetic";
+        json.textDirection = $el.data("textDirection") || "ltr";
+        json.verticalDirection = $el.data("verticalDirection") || "down";
+
+        json.children = [];
+        $el
+          .find('[data-slot="children"]')
+          .first()
+          .children(".component")
+          .each(function () {
+            json.children.push(parseComponent($(this)));
+          });
+      }
+
+      if (type === "Icon") {
+        json.data = $el.data("data");
+        json.color = $el.data("color");
+        json.size = parseFloat($el.data("size"));
+      }
+
+      return json;
+    }
+
+    $("#exportJson").click(() => {
+      const bodyComp = $("#canvas-body").children(".component").first();
+
+      const jsonOutput = bodyComp.length ? parseComponent(bodyComp) : null;
+      $("#jsonOutput").text(JSON.stringify(jsonOutput, null, 2));
+    });
+
+    // Initialize component search
+    $("#componentSearch").on("input", function () {
+      const searchTerm = $(this).val().toLowerCase();
+
+      $(".component").each(function () {
+        const componentText = $(this).text().toLowerCase();
+        if (componentText.includes(searchTerm)) {
+          $(this).show();
+          // Ensure parent category is expanded
+          $(this).closest(".component-category").find(".category-header").removeClass("collapsed");
+          $(this).closest(".category-content").removeClass("collapsed");
+        } else {
+          $(this).hide();
+        }
       });
-    </script>
-  </body>
+    });
+
+    // Initialize category toggles
+    $(".category-header").on("click", function () {
+      $(this).toggleClass("collapsed");
+      $(this).next(".category-content").toggleClass("collapsed");
+    });
+  </script>
+</body>
+
 </html>
